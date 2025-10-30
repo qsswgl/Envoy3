@@ -2,14 +2,13 @@ version: '3.8'
 
 services:
   envoy:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: envoyproxy/envoy:contrib-v1.36.2
     container_name: envoy-proxy
     restart: always
     ports:
       # HTTPS 端口 (TCP)
       - "443:443/tcp"
+      - "99:99/tcp"
       - "5002:5002/tcp"
       # HTTP/3 端口 (UDP)
       - "443:443/udp"
@@ -17,8 +16,8 @@ services:
       # Admin 接口（内部访问）
       - "127.0.0.1:9901:9901"
     volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ./certs:/etc/envoy/certs:ro
+      - ./config/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - /opt/shared-certs:/etc/envoy/certs:ro
       - ./logs:/var/log/envoy
     networks:
       - envoy-network
