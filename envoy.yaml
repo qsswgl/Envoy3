@@ -103,7 +103,7 @@ static_resources:
             name: local_route_5002
             virtual_hosts:
             - name: qsgl_backend_5002
-              domains: ["www.qsgl.net:5002", "api.qsgl.net:5002", "www.qsgl.net", "api.qsgl.net"]
+              domains: ["*.qsgl.net:5002", "*.qsgl.net", "qsgl.net:5002", "qsgl.net"]
               cors:
                 allow_origin_string_match:
                 - safe_regex:
@@ -183,7 +183,7 @@ static_resources:
             name: local_route_99
             virtual_hosts:
             - name: qsgl_backend_99
-              domains: ["www.qsgl.net:99", "www.qsgl.net"]
+              domains: ["*.qsgl.net:99", "*.qsgl.net", "qsgl.net:99", "qsgl.net"]
               cors:
                 allow_origin_string_match:
                 - safe_regex:

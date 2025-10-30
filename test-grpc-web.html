@@ -344,10 +344,14 @@
                 result += `X-Envoy-Upstream-Service-Time: ${headers['x-envoy-upstream-service-time'] || 'N/A'}\n`;
                 result += `\n关键检查:\n`;
                 result += `✓ Envoy 处理请求: ${hasEnvoyHeaders ? '是 ✅' : '否 ❌'}\n`;
-                result += `✓ 接受 gRPC-WEB 请求: ${response.status !== 404 ? '是 ✅' : '否 ❌'}\n`;
                 
-                // 判断测试是否通过
-                const passed = hasEnvoyHeaders && response.status !== 404;
+                // gRPC-WEB 检查: Envoy 能处理 + (2xx/3xx/405/501 都算支持)
+                // 404 = 路由失败, 其他错误都说明请求被正确转发
+                const grpcWebSupported = response.status !== 404;
+                result += `✓ 接受 gRPC-WEB 请求: ${grpcWebSupported ? '是 ✅' : '否 ❌'}\n`;
+                
+                // 判断测试是否通过: Envoy 处理了 + 不是 404
+                const passed = hasEnvoyHeaders && grpcWebSupported;
                 testResults.total++;
                 if (passed) {
                     testResults.passed++;
