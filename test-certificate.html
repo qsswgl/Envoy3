@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envoy 证书测试 - SAN 支持</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .check {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Envoy 代理证书已更新</h1>
+        
+        <div class="status success">
+            ✅ 证书已包含 Subject Alternative Name (SAN)
+        </div>
+
+        <div class="test-section">
+            <h2>📋 证书信息</h2>
+            <ul>
+                <li><strong>域名：</strong> *.qsgl.net (通配符)</li>
+                <li><strong>SAN 扩展：</strong>
+                    <ul>
+                        <li>DNS: *.qsgl.net</li>
+                        <li>DNS: qsgl.net</li>
+                    </ul>
+                </li>
+                <li><strong>Envoy 版本：</strong> 1.36.2</li>
+                <li><strong>生成时间：</strong> 2025-10-30</li>
+                <li><strong>有效期：</strong> 3 年 (至 2028-10-29)</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🔌 支持的端口</h2>
+            <ul>
+                <li><span class="check">✓</span> 端口 443 (HTTPS) - 主端口</li>
+                <li><span class="check">✓</span> 端口 99 (HTTPS) - 备用端口</li>
+                <li><span class="check">✓</span> 端口 5002 (HTTPS) - SSE/WebSocket</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🌐 浏览器兼容性</h2>
+            <ul>
+                <li><span class="check">✓</span> Chrome / Edge - 现在支持 (SAN 已添加)</li>
+                <li><span class="check">✓</span> Firefox - 支持</li>
+                <li><span class="check">✓</span> Safari - 支持</li>
+            </ul>
+        </div>
+
+        <div class="status info">
+            <strong>注意：</strong> 由于使用自签名证书，首次访问时需要在浏览器中信任此证书。
+            <br>在 Chrome/Edge 中，点击 "高级" → "继续前往 www.qsgl.net (不安全)"
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 测试链接</h2>
+            <ul>
+                <li><a href="https://www.qsgl.net:443/" target="_blank">测试端口 443</a></li>
+                <li><a href="https://www.qsgl.net:99/" target="_blank">测试端口 99</a></li>
+                <li><a href="https://www.qsgl.net:5002/" target="_blank">测试端口 5002</a></li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 技术特性</h2>
+            <ul>
+                <li>HTTP/1.1, HTTP/2, HTTP/3 (QUIC) 支持</li>
+                <li>gRPC-WEB 过滤器</li>
+                <li>TLS 1.2 / 1.3 加密</li>
+                <li>自动重启策略</li>
+                <li>健康检查和监控</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 显示当前访问的协议和端口
+        window.onload = function() {
+            const protocol = window.location.protocol;
+            const port = window.location.port || (protocol === 'https:' ? '443' : '80');
+            console.log(`当前访问: ${protocol}//${window.location.hostname}:${port}`);
+            console.log('证书 SAN 支持已启用 ✅');
+        };
+    </script>
+</body>
+</html>

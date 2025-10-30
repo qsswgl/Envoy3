@@ -1,0 +1,17 @@
+[Unit]
+Description=Envoy Proxy Monitoring Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/envoy
+ExecStart=/usr/bin/python3 /root/envoy/monitor.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=envoy-monitor
+
+[Install]
+WantedBy=multi-user.target

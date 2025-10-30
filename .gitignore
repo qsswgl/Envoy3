@@ -1,0 +1,42 @@
+# 添加到 .gitignore
+
+# 证书和私钥
+certs/*.pem
+certs/*.key
+*.pem
+*.key
+
+# 日志文件
+logs/
+*.log
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 环境变量
+.env
+.env.local
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 备份文件
+*.bak
+*.backup
+*.tar.gz
+*.zip

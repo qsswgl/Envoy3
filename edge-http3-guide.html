@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge浏览器启用HTTP/3指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .status-box {
+            background: #f0f9ff;
+            border-left: 5px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .status-box.warning {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+        .status-box.success {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+        .status-box.error {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+        .step {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 15px;
+        }
+        .step-title {
+            display: inline-block;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1f2937;
+            vertical-align: middle;
+        }
+        .step-content {
+            margin-top: 20px;
+            padding-left: 55px;
+        }
+        .command-box {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            font-size: 1.1em;
+            position: relative;
+            overflow-x: auto;
+        }
+        .command-box::before {
+            content: '$';
+            color: #6b7280;
+            margin-right: 10px;
+        }
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .copy-btn:hover {
+            background: #4b5563;
+        }
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .action-button.secondary {
+            background: #6b7280;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f3f4f6;
+            border-radius: 5px;
+            position: relative;
+            padding-left: 40px;
+        }
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 10px;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        .comparison-table tr:hover {
+            background: #f9fafb;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .protocol-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .protocol-badge.h3 {
+            background: #10b981;
+            color: white;
+        }
+        .protocol-badge.h2 {
+            background: #f59e0b;
+            color: white;
+        }
+        .protocol-badge.h1 {
+            background: #ef4444;
+            color: white;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #667eea;
+        }
+        .timeline-item {
+            position: relative;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -36px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Edge浏览器启用HTTP/3</h1>
+            <p>3分钟让你的浏览器飞起来！</p>
+        </div>
+
+        <div class="content">
+            <!-- 当前状态 -->
+            <div class="status-box warning">
+                <h2>📊 当前状态</h2>
+                <p style="font-size: 1.2em; margin-top: 10px;">
+                    你看到的协议: <span class="protocol-badge h2">h2 (HTTP/2)</span>
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>这是正常的！</strong> HTTP/3需要在Edge浏览器中手动启用。
+                </p>
+            </div>
+
+            <!-- 为什么是h2 -->
+            <div class="status-box">
+                <h2>🤔 为什么现在是HTTP/2？</h2>
+                <ul style="margin-top: 15px; padding-left: 20px;">
+                    <li style="margin: 8px 0;"><strong>原因1</strong>: Edge浏览器默认<span class="highlight">未启用HTTP/3</span></li>
+                    <li style="margin: 8px 0;"><strong>原因2</strong>: 即使启用，首次访问也会使用HTTP/2</li>
+                    <li style="margin: 8px 0;"><strong>原因3</strong>: 浏览器需要先收到服务器的Alt-Svc响应头</li>
+                </ul>
+            </div>
+
+            <!-- 启用步骤 -->
+            <h2 style="color: #667eea; font-size: 2em; margin-top: 40px; text-align: center;">
+                ⚙️ 启用HTTP/3的5个步骤
+            </h2>
+
+            <!-- 步骤1 -->
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">打开实验性功能页面</span>
+                <div class="step-content">
+                    <p>在Edge地址栏中复制粘贴以下地址：</p>
+                    <div class="command-box">
+                        edge://flags/#enable-quic
+                    </div>
+                    <p style="color: #6b7280; margin-top: 10px;">
+                        💡 提示: 按 <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 3px;">Ctrl+L</code> 快速定位到地址栏
+                    </p>
+                </div>
+            </div>
+
+            <!-- 步骤2 -->
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">启用QUIC协议</span>
+                <div class="step-content">
+                    <p>在打开的页面中找到：</p>
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <strong style="color: #667eea;">Experimental QUIC protocol</strong>
+                        <p style="margin-top: 10px;">将下拉菜单从 <span style="color: #ef4444;">Default</span> 改为 <span style="color: #10b981;">Enabled</span></p>
+                    </div>
+                    <p style="color: #6b7280;">
+                        ⚠️ 注意: 不要改错了选项，确保是 <strong>QUIC protocol</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- 步骤3 -->
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">重启浏览器</span>
+                <div class="step-content">
+                    <p>页面底部会出现一个蓝色按钮：</p>
+                    <button class="action-button" style="margin: 15px 0;" onclick="alert('请在Edge浏览器的edge://flags页面点击Relaunch按钮')">
+                        Relaunch 重新启动
+                    </button>
+                    <p style="color: #6b7280; margin-top: 10px;">
+                        🔄 这会重启Edge浏览器，所有标签页会自动恢复
+                    </p>
+                </div>
+            </div>
+
+            <!-- 步骤4 -->
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">清除浏览器缓存（推荐）</span>
+                <div class="step-content">
+                    <p>按下快捷键打开清除浏览数据窗口：</p>
+                    <div style="background: #1f2937; color: white; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-size: 1.3em;">
+                        <kbd style="background: #374151; padding: 8px 15px; border-radius: 5px; margin: 0 5px;">Ctrl</kbd> + 
+                        <kbd style="background: #374151; padding: 8px 15px; border-radius: 5px; margin: 0 5px;">Shift</kbd> + 
+                        <kbd style="background: #374151; padding: 8px 15px; border-radius: 5px; margin: 0 5px;">Delete</kbd>
+                    </div>
+                    <p>勾选以下项目：</p>
+                    <ul class="checklist">
+                        <li>浏览历史记录</li>
+                        <li>Cookie和其他站点数据</li>
+                        <li>缓存的图像和文件</li>
+                    </ul>
+                    <p style="color: #6b7280; margin-top: 10px;">
+                        ℹ️ 这一步可以确保浏览器使用新的协议设置
+                    </p>
+                </div>
+            </div>
+
+            <!-- 步骤5 -->
+            <div class="step">
+                <span class="step-number">5</span>
+                <span class="step-title">验证HTTP/3</span>
+                <div class="step-content">
+                    <p>访问测试页面：</p>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <a href="https://www.qsgl.net/test-http3.html" target="_blank" class="action-button">
+                            🧪 打开HTTP/3测试页面
+                        </a>
+                    </div>
+                    <p>或者在开发者工具中查看：</p>
+                    <ol style="margin-top: 15px; padding-left: 20px;">
+                        <li style="margin: 8px 0;">访问 <a href="https://www.qsgl.net/" target="_blank" style="color: #667eea;">https://www.qsgl.net/</a></li>
+                        <li style="margin: 8px 0;">按 <code style="background: #f3f4f6; padding: 2px 6px;">F12</code> 打开开发者工具</li>
+                        <li style="margin: 8px 0;">切换到 <strong>Network (网络)</strong> 标签</li>
+                        <li style="margin: 8px 0;">按 <code style="background: #f3f4f6; padding: 2px 6px;">Ctrl+F5</code> 强制刷新</li>
+                        <li style="margin: 8px 0;">查看 <strong>Protocol</strong> 列</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- 预期结果 -->
+            <div class="status-box success">
+                <h2>✅ 成功标志</h2>
+                <p style="font-size: 1.2em; margin-top: 10px;">
+                    当看到协议显示为: <span class="protocol-badge h3">h3</span> 或 <span class="protocol-badge h3">http/3</span>
+                </p>
+                <p style="margin-top: 15px;">
+                    恭喜！你已经成功启用HTTP/3，享受更快的网页加载速度！ 🎉
+                </p>
+            </div>
+
+            <!-- 时间线 -->
+            <h2 style="color: #667eea; font-size: 1.8em; margin-top: 40px;">
+                ⏱️ HTTP/3生效时间线
+            </h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <strong style="color: #667eea;">首次访问</strong>
+                    <p>协议: <span class="protocol-badge h2">h2</span> - 浏览器使用HTTP/2连接</p>
+                    <p style="color: #6b7280; font-size: 0.9em; margin-top: 5px;">服务器返回 Alt-Svc 响应头告知支持HTTP/3</p>
+                </div>
+                <div class="timeline-item">
+                    <strong style="color: #667eea;">浏览器缓存</strong>
+                    <p>浏览器记住: "www.qsgl.net 支持 HTTP/3"</p>
+                </div>
+                <div class="timeline-item">
+                    <strong style="color: #667eea;">第二次访问</strong>
+                    <p>协议: <span class="protocol-badge h3">h3</span> - 浏览器使用HTTP/3连接</p>
+                    <p style="color: #6b7280; font-size: 0.9em; margin-top: 5px;">通过UDP 443端口建立QUIC连接</p>
+                </div>
+                <div class="timeline-item">
+                    <strong style="color: #667eea;">后续访问</strong>
+                    <p>持续使用 <span class="protocol-badge h3">h3</span>（缓存有效期24小时）</p>
+                </div>
+            </div>
+
+            <!-- 性能对比 -->
+            <h2 style="color: #667eea; font-size: 1.8em; margin-top: 40px;">
+                🚀 性能提升对比
+            </h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>性能指标</th>
+                        <th>HTTP/2</th>
+                        <th>HTTP/3</th>
+                        <th>提升</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>连接建立时间</strong></td>
+                        <td>~100ms</td>
+                        <td>~50ms</td>
+                        <td style="color: #10b981; font-weight: bold;">↓ 50%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>首字节时间</strong></td>
+                        <td>~150ms</td>
+                        <td>~80ms</td>
+                        <td style="color: #10b981; font-weight: bold;">↓ 47%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>页面加载时间</strong></td>
+                        <td>~1.2s</td>
+                        <td>~0.9s</td>
+                        <td style="color: #10b981; font-weight: bold;">↓ 25%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>队头阻塞</strong></td>
+                        <td>存在</td>
+                        <td>无</td>
+                        <td style="color: #10b981; font-weight: bold;">✅ 解决</td>
+                    </tr>
+                    <tr>
+                        <td><strong>连接迁移</strong></td>
+                        <td>不支持</td>
+                        <td>支持</td>
+                        <td style="color: #10b981; font-weight: bold;">✅ 支持</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 故障排查 -->
+            <h2 style="color: #667eea; font-size: 1.8em; margin-top: 40px;">
+                🔧 故障排查
+            </h2>
+
+            <div class="status-box error">
+                <h3>❓ 启用后还是显示h2？</h3>
+                <p style="margin-top: 10px;">请检查以下项目：</p>
+                <ul style="margin-top: 15px; padding-left: 20px;">
+                    <li style="margin: 8px 0;">✅ 确认已点击 <strong>Relaunch</strong> 重启浏览器</li>
+                    <li style="margin: 8px 0;">✅ 已清除浏览器缓存（Ctrl+Shift+Delete）</li>
+                    <li style="margin: 8px 0;">✅ 关闭所有Edge窗口后重新打开</li>
+                    <li style="margin: 8px 0;">✅ 使用 <strong>Ctrl+F5</strong> 强制刷新页面</li>
+                    <li style="margin: 8px 0;">✅ 查看的是刷新后的请求，不是缓存的请求</li>
+                </ul>
+            </div>
+
+            <div class="status-box warning">
+                <h3>🌐 网络可能阻止UDP？</h3>
+                <p style="margin-top: 10px;">某些网络环境（企业网络、公共WiFi）可能阻止UDP 443端口。</p>
+                <p style="margin-top: 10px;"><strong>解决方法：</strong></p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li style="margin: 8px 0;">切换到家庭网络或手机热点测试</li>
+                    <li style="margin: 8px 0;">如果UDP被阻止，浏览器会自动降级到HTTP/2（这是正常的）</li>
+                </ul>
+            </div>
+
+            <!-- 快速链接 -->
+            <div style="background: #f9fafb; padding: 30px; border-radius: 15px; margin-top: 40px; text-align: center;">
+                <h2 style="color: #667eea; margin-bottom: 20px;">🔗 快速链接</h2>
+                <a href="https://www.qsgl.net/test-http3.html" target="_blank" class="action-button">
+                    🧪 HTTP/3测试页面
+                </a>
+                <a href="https://www.qsgl.net/" target="_blank" class="action-button secondary">
+                    🏠 访问主站
+                </a>
+                <a href="https://http3check.net/?host=www.qsgl.net" target="_blank" class="action-button secondary">
+                    🌐 在线检测工具
+                </a>
+            </div>
+
+            <!-- 技术信息 -->
+            <div style="margin-top: 40px; padding: 20px; background: #f3f4f6; border-radius: 10px; font-size: 0.9em; color: #6b7280;">
+                <p><strong>技术信息:</strong></p>
+                <p>服务器: 62.234.212.241 (腾讯云)</p>
+                <p>域名: www.qsgl.net, *.qsgl.net</p>
+                <p>Envoy版本: v1.36.2 contrib</p>
+                <p>支持协议: HTTP/3 (QUIC), HTTP/2, HTTP/1.1</p>
+                <p>Alt-Svc响应头: h3=":443"; ma=86400</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加复制功能
+        document.querySelectorAll('.command-box').forEach(box => {
+            const text = box.textContent.trim();
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = '复制';
+            btn.onclick = () => {
+                navigator.clipboard.writeText(text).then(() => {
+                    btn.textContent = '已复制✓';
+                    setTimeout(() => btn.textContent = '复制', 2000);
+                });
+            };
+            box.style.position = 'relative';
+            box.appendChild(btn);
+        });
+    </script>
+</body>
+</html>

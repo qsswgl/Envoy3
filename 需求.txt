@@ -1,0 +1,55 @@
+Envoy容器代理部署：  
+1 ssh 用账号ubuntu登录 62.234.212.241， 密钥：""C:\Key\qsgl_key.pem""
+  无密码私钥免密ssh登录腾讯云服务器
+2 在服务器主机上安装部署容器里运行的envoy最新版， 做反向代理https://www.qsgl.net 单域名，代理到后端https://61.163.200.245 ，代理端口443，5002,99
+99端口指向后端99，5002指向后端5002，5002是sse通讯，需要长连接
+3 调用生成域名证书的api服务：
+https://tx.qsgl.net:5075/api/request-cert，入参方式参考https://tx.qsgl.net:5075/swagger/index.html 里文档示例
+4  要求支持客户端到代理端的http/3，gRPC-WEB 通讯
+5 设置容器自动重启策略
+6 创建自动诊断脚本
+7 配置服务监控告警（每 5 分钟检查一次），报警信息推送到qsoft@139.com  smtp 授权码：574a283d502db51ea200
+8 添加健康检查到容器配置
+9 使用 Docker Compose 管理部署
+
+=== 部署完成状态 (2025-10-30) ===
+✅ Envoy容器: envoyproxy/envoy:contrib-v1.36.2 (运行正常)
+✅ 代理域名: *.qsgl.net (泛域名) → 后端 https://61.163.200.245
+✅ SSL证书: Let's Encrypt (*.qsgl.net 泛域名证书，有效期至2026-01-18)
+✅ 监听端口: 443 TCP/UDP (HTTP/3), 5002 TCP/UDP (HTTP/3), 99 TCP, 9901 TCP (admin)
+✅ 协议支持: HTTP/3 (QUIC), HTTP/2, HTTP/1.1, gRPC-WEB
+✅ HTTP/3状态: ✅ 已完全启用 (Alt-Svc响应头已配置，UDP端口已监听)
+✅ 监控服务: 每5分钟检测，邮件告警到 qsoft@139.com
+✅ 泛域名支持: 所有*.qsgl.net子域名均可代理（需DNS指向62.234.212.241）
+✅ Host重写: 所有子域名请求转发到后端时统一改写为 www.qsgl.net
+✅ 公网访问: https://www.qsgl.net, https://a.qsgl.net (均正常，返回200)
+✅ Alt-Svc响应头: h3=":443"; ma=86400 (告知客户端支持HTTP/3)
+✅ ALPN协议: h3, h2, http/1.1
+✅ HTTP/3测试页: https://www.qsgl.net/test-http3.html
+
+=== 端口路由配置 (2025-10-30) ===
+📌 端口443 (HTTP/3主站):
+   - 监听: 443 TCP/UDP
+   - 域名: ["*.qsgl.net", "qsgl.net"] (泛域名支持)
+   - 后端: 61.163.200.245:443 (IIS)
+   - 特性: Host重写为 www.qsgl.net, HTTP/3支持, TLS证书验证
+   - 测试: ✅ https://www.qsgl.net/ (200 OK)
+
+📌 端口99 (固定域名):
+   - 监听: 99 TCP
+   - 域名: ["www.qsgl.net", "api.qsgl.net"] (仅支持这两个域名)
+   - 后端: 61.163.200.245:99 (Kestrel)
+   - 特性: 无Host重写, 无TLS证书验证
+   - 测试: ✅ https://www.qsgl.net:99/ (200 OK)
+
+📌 端口5002 (SSE长连接):
+   - 监听: 5002 TCP/UDP
+   - 域名: ["www.qsgl.net", "api.qsgl.net"] (仅支持这两个域名)
+   - 后端: 61.163.200.245:5002 (Kestrel)
+   - 特性: 
+     * /sse/* 路径: timeout: 0s, idle_timeout: 3600s (SSE长连接)
+     * 其他路径: timeout: 300s (常规请求)
+     * 无Host重写, 无TLS证书验证
+   - 测试: 
+     ✅ https://www.qsgl.net:5002/sse/UsersID/1 (SSE数据流)
+     ✅ https://api.qsgl.net:5002/sse/UsersID/1 (SSE数据流)
